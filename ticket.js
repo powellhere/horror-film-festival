@@ -68,7 +68,39 @@ function generateTicket() {
     bgImage.src = imageArray[randomIndex]; 
     
     bgImage.onload = function() {
-        ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+        // 计算图片和画布的宽高比
+        const imgRatio = bgImage.width / bgImage.height;
+        const canvasRatio = canvas.width / canvas.height;
+        
+        let drawWidth, drawHeight, offsetX, offsetY;
+
+        // 如果图片比画布更宽（或比例一样）
+        if (imgRatio > canvasRatio) {
+            drawHeight = canvas.height;
+            drawWidth = bgImage.width * (canvas.height / bgImage.height);
+            offsetX = (canvas.width - drawWidth) / 2; // 水平居中
+            offsetY = 0;
+        } 
+        // 如果图片比画布更高
+        else {
+            drawWidth = canvas.width;
+            drawHeight = bgImage.height * (canvas.width / bgImage.width);
+            offsetX = 0;
+            offsetY = (canvas.height - drawHeight) / 2; // 垂直居中（如果你想展示图片偏上的部分，可以把 / 2 改成 / 4 或者 0）
+        }
+
+        // 1. 清空画布
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // 2. 绘制按比例缩放并居中的图片（超出画布的部分会自动被裁剪）
+        ctx.drawImage(bgImage, offsetX, offsetY, drawWidth, drawHeight);
+        
+        // 💡 强烈建议加上这一步：画一层半透明的黑色遮罩
+        // 因为你的文字是白色的，如果背景图片太亮（比如这张燃烧的壁炉），文字会看不清
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; // 0.4代表40%的不透明度，可自行调整
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 3. 最后画上文字
         drawText(ctx, nameInput);
     };
 
