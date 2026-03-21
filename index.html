@@ -114,3 +114,30 @@
     <p><em>Ready to scream? Click on any film to book your tickets for our midnight screenings.</em></p>
     <p>&copy; 2026 HorrorDB / Shadows & Celluloid Film Festival. All rights reserved.</p>
 </footer>
+<!-- 🌟 第二部分：新加的票根模态框 HTML -->
+    <div id="ticketModal" class="ticket-modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeTicketModal()">&times;</span>
+            <h2>Midnight Matinee Ticket</h2>
+            <p>Enter your name to generate your exclusive ticket stub.</p>
+            
+            <input type="text" id="viewerName" placeholder="Your Name (e.g. John Doe)" maxlength="20">
+            <button onclick="generateTicket()" class="gen-btn">Generate Ticket</button>
+    
+            <canvas id="ticketCanvas" width="800" height="300" style="display:none;"></canvas>
+            
+            <div id="ticketPreviewContainer" style="display:none; margin-top: 20px;">
+                <img id="ticketPreviewImage" src="" alt="Your Ticket" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+                <a id="downloadLink" href="#" download="Shadows-Celluloid-Ticket.jpg">
+                    <button class="download-btn">Download Ticket (.jpg)</button>
+                </a>
+            </div>
+        </div>
+    </div>
+     <!-- 🌟 第三部分：引入分离出去的 JavaScript 文件 -->
+    <!-- 如果你在 GitHub 上建了 js/ticket.js，就在这里引入。 -->
+    <!-- 如果还没建，你可以直接用 <script> 把之前那段 JS 代码写在这里 -->
+    <script src="ticket.js"></script>
+
+</body>
+</html>
