@@ -1,17 +1,204 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 你的网页标题 -->
-    <title>HorrorDB - Shadows & Celluloid</title>
-    
-    <!-- 关键：在这里引入你刚刚分离出去的 CSS 文件！ -->
-    <!-- 如果你的文件在 css 文件夹里，就写 href="css/style.css"；如果在外面，就写 href="style.css" -->
-    <link rel="stylesheet" href="style.css">
-</head>
+<title>HorrorDB - Shadows & Celluloid</title> <style> /* 全局样式 */ :root { --bg-color: #121212; --surface-color: #1f1f1f; --text-primary: #ffffff; --text-secondary: #b3b3b3; --imdb-yellow: #f5c518; --hover-color: #2a2a2a; }
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-primary);
+        line-height: 1.6;
+    }
 
-<body>
+    /* 顶部导航栏 */
+    header {
+        background-color: #000000;
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .logo {
+        background-color: var(--imdb-yellow);
+        color: #000;
+        font-weight: 900;
+        font-size: 1.2rem;
+        padding: 5px 10px;
+        border-radius: 4px;
+        text-decoration: none;
+        letter-spacing: -0.5px;
+    }
+
+    .search-bar {
+        flex-grow: 1;
+        margin: 0 30px;
+        display: flex;
+    }
+
+    .search-bar input {
+        width: 100%;
+        padding: 8px 15px;
+        border: none;
+        border-radius: 4px;
+        background-color: #fff;
+        font-size: 1rem;
+    }
+
+    /* 主体内容区 */
+    main {
+        max-width: 1100px; /* 稍微加宽一点以适应网格 */
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    /* 电影节简介版块 */
+    .festival-intro {
+        background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://images.unsplash.com/photo-1505635552518-3448ff116af3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80') center/cover;
+        padding: 40px;
+        border-radius: 8px;
+        margin-bottom: 40px;
+        border: 1px solid #333;
+    }
+
+    .festival-intro h1 {
+        color: var(--imdb-yellow);
+        font-size: 2.5rem;
+        margin-top: 0;
+        border-bottom: 2px solid #333;
+        padding-bottom: 10px;
+    }
+
+    .festival-intro p {
+        font-size: 1.1rem;
+        color: #e0e0e0;
+    }
+
+    .section-title {
+        color: var(--imdb-yellow);
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .section-title::before {
+        content: '';
+        display: inline-block;
+        width: 4px;
+        height: 24px;
+        background-color: var(--imdb-yellow);
+        margin-right: 10px;
+        border-radius: 2px;
+    }
+
+    /* ========== 修改核心：电影卡片网格布局 ========== */
+    .movie-grid {
+        display: grid;
+        /* 自动适应屏幕宽度，每列最小 400px，最大填满 */
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 30px; 
+    }
+
+    .movie-card {
+        display: flex;
+        flex-direction: column; /* 【关键修改】改为上下垂直排列 */
+        background-color: var(--surface-color);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        transition: transform 0.2s, background-color 0.2s;
+        height: 100%; /* 让同一行的卡片等高 */
+    }
+
+    .movie-card:hover {
+        transform: translateY(-5px); /* 悬停时微微上浮 */
+        background-color: var(--hover-color);
+    }
+
+    .movie-poster {
+        width: 100%;
+        height: 400px; /* 固定图片高度，您可以根据喜好调整 */
+        background-color: #1a1a1a; /* 图片加载前的底色 */
+    }
+
+    .movie-poster img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* 【关键修改】确保图片填满区域且不变形 */
+        object-position: center 20%; /* 让图片焦点偏上 */
+        display: block;
+    }
+
+    .movie-info {
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1; /* 让信息区域填满剩余高度 */
+    }
+
+    .movie-title {
+        font-size: 1.5rem;
+        margin: 0 0 10px 0;
+    }
+
+    .movie-title a {
+        color: var(--text-primary);
+        text-decoration: none;
+    }
+
+    .movie-title a:hover {
+        text-decoration: underline;
+    }
+
+    .movie-meta {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #333; /* 增加一条分割线让视觉更清晰 */
+    }
+
+    .movie-meta span {
+        margin-right: 15px;
+    }
+
+    .movie-meta strong {
+        color: var(--text-primary);
+    }
+
+    .movie-synopsis {
+        font-size: 1rem;
+        color: #ccc;
+        margin: 0;
+        line-height: 1.7;
+    }
+
+    /* 页脚 */
+    footer {
+        text-align: center;
+        padding: 20px;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        background-color: #000;
+        margin-top: 60px;
+    }
+
+    /* 响应式设计：手机端适配 */
+    @media (max-width: 768px) {
+        .movie-grid {
+            grid-template-columns: 1fr; /* 手机端强制单列显示 */
+        }
+        .movie-poster {
+            height: 300px; /* 手机端稍微减小图片高度 */
+        }
+        .search-bar {
+            display: none;
+        }
+    }
+</style>
 <header>
     <a href="#" class="logo">HorrorDB</a>
     <div class="search-bar">
@@ -114,30 +301,3 @@
     <p><em>Ready to scream? Click on any film to book your tickets for our midnight screenings.</em></p>
     <p>&copy; 2026 HorrorDB / Shadows & Celluloid Film Festival. All rights reserved.</p>
 </footer>
-<!-- 🌟 第二部分：新加的票根模态框 HTML -->
-    <div id="ticketModal" class="ticket-modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeTicketModal()">&times;</span>
-            <h2>Midnight Matinee Ticket</h2>
-            <p>Enter your name to generate your exclusive ticket stub.</p>
-            
-            <input type="text" id="viewerName" placeholder="Your Name (e.g. John Doe)" maxlength="20">
-            <button onclick="generateTicket()" class="gen-btn">Generate Ticket</button>
-    
-            <canvas id="ticketCanvas" width="800" height="300" style="display:none;"></canvas>
-            
-            <div id="ticketPreviewContainer" style="display:none; margin-top: 20px;">
-                <img id="ticketPreviewImage" src="" alt="Your Ticket" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-                <a id="downloadLink" href="#" download="Shadows-Celluloid-Ticket.jpg">
-                    <button class="download-btn">Download Ticket (.jpg)</button>
-                </a>
-            </div>
-        </div>
-    </div>
-     <!-- 🌟 第三部分：引入分离出去的 JavaScript 文件 -->
-    <!-- 如果你在 GitHub 上建了 js/ticket.js，就在这里引入。 -->
-    <!-- 如果还没建，你可以直接用 <script> 把之前那段 JS 代码写在这里 -->
-    <script src="ticket.js"></script>
-
-</body>
-</html>
