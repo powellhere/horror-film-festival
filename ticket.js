@@ -48,73 +48,51 @@ function generateTicket() {
     const canvas = document.getElementById('ticketCanvas');
     const ctx = canvas.getContext('2d');
     
-    const bgImage = new Image();
-    
-    // ==========================================
-    // 2. 核心逻辑：随机抽取图片
-    // ==========================================
-    // 根据当前电影名去图库池里找对应的数组
     let imageArray = movieBackgrounds[currentMovie];
-    
-    // 容错处理：如果没找到对应的电影，或者数组是空的，就用默认占位图
     if (!imageArray || imageArray.length === 0) {
-        imageArray = ['images/ticket-placeholder.jpg'];
+        imageArray = ['images/ticket-placeholder.jpg']; // 确保有一张兜底图
     }
-    
-    // 生成一个随机索引 (比如有3张图，就是 0, 1, 或 2)
     const randomIndex = Math.floor(Math.random() * imageArray.length);
     
-    // 把抽到的图片路径赋值给画布
-    bgImage.src = imageArray[randomIndex]; 
+    const bgImage = new Image();
     
+    // 💡 必须先写 onload
     bgImage.onload = function() {
-        // 计算图片和画布的宽高比
         const imgRatio = bgImage.width / bgImage.height;
         const canvasRatio = canvas.width / canvas.height;
-        
         let drawWidth, drawHeight, offsetX, offsetY;
 
-        // 如果图片比画布更宽（或比例一样）
         if (imgRatio > canvasRatio) {
             drawHeight = canvas.height;
             drawWidth = bgImage.width * (canvas.height / bgImage.height);
-            offsetX = (canvas.width - drawWidth) / 2; // 水平居中
+            offsetX = (canvas.width - drawWidth) / 2;
             offsetY = 0;
-        } 
-        // 如果图片比画布更高
-        else {
+        } else {
             drawWidth = canvas.width;
             drawHeight = bgImage.height * (canvas.width / bgImage.width);
             offsetX = 0;
-            offsetY = (canvas.height - drawHeight) / 2; // 垂直居中（如果你想展示图片偏上的部分，可以把 / 2 改成 / 4 或者 0）
+            offsetY = (canvas.height - drawHeight) / 2;
         }
 
-        // 1. 清空画布
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // 2. 绘制按比例缩放并居中的图片（超出画布的部分会自动被裁剪）
         ctx.drawImage(bgImage, offsetX, offsetY, drawWidth, drawHeight);
         
-        // 💡 强烈建议加上这一步：画一层半透明的黑色遮罩
-        // 因为你的文字是白色的，如果背景图片太亮（比如这张燃烧的壁炉），文字会看不清
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; // 0.4代表40%的不透明度，可自行调整
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 3. 最后画上文字
         drawText(ctx, nameInput);
     };
 
     bgImage.onerror = function() {
-        // 如果你的图片路径写错了或者图片还没传上去，就用代码画个红黑框兜底
+        console.error("图片加载失败，请检查路径:", bgImage.src);
+        // 图片加载失败时的纯色兜底
         ctx.fillStyle = '#1a1111'; 
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        ctx.strokeStyle = '#8b0000'; 
-        ctx.lineWidth = 10;
-        ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
-        
         drawText(ctx, nameInput);
     };
+
+    // 💡 最后再给 src 赋值，触发上面的 onload
+    bgImage.src = imageArray[randomIndex]; 
 }
 
 function drawText(ctx, userName) {
