@@ -1,10 +1,42 @@
+// ==========================================
+// 1. 建立电影专属图库池 (Image Pool)
+// ==========================================
+// 请把你准备好的底图放到 images 文件夹里，并在这里填上正确的路径
+const movieBackgrounds = {
+    'Frankenstein': [
+        'images/frank-bg-1.jpg',
+        'images/frank-bg-2.jpg'
+    ],
+    'Psycho': [
+        'images/psycho-bg-1.jpg',
+        'images/psycho-bg-2.jpg',
+        'images/psycho-bg-3.jpg'
+    ],
+    'Rosemary\'s Baby': [
+        'images/rosemary-bg-1.jpg',
+        'images/rosemary-bg-2.jpg'
+    ],
+    'The Exorcist': [
+        'images/exorcist-bg-1.jpg',
+        'images/exorcist-bg-2.jpg'
+    ],
+    'The Shining': [
+        'images/shining-bg-1.jpg',
+        'images/shining-bg-2.jpg'
+    ]
+};
+
 let currentMovie = ""; 
 
 function openTicketModal(movieTitle) {
     currentMovie = movieTitle;
     document.getElementById('ticketModal').style.display = 'block';
     document.getElementById('ticketPreviewContainer').style.display = 'none';
-    document.getElementById('viewerName').value = '';
+    
+    const nameInput = document.getElementById('viewerName');
+    nameInput.value = '';
+    // 让输入框瞬间获得焦点，增强“直接跳转”的体验
+    nameInput.focus(); 
 }
 
 function closeTicketModal() {
@@ -17,7 +49,23 @@ function generateTicket() {
     const ctx = canvas.getContext('2d');
     
     const bgImage = new Image();
-    bgImage.src = 'images/ticket-placeholder.jpg'; 
+    
+    // ==========================================
+    // 2. 核心逻辑：随机抽取图片
+    // ==========================================
+    // 根据当前电影名去图库池里找对应的数组
+    let imageArray = movieBackgrounds[currentMovie];
+    
+    // 容错处理：如果没找到对应的电影，或者数组是空的，就用默认占位图
+    if (!imageArray || imageArray.length === 0) {
+        imageArray = ['images/ticket-placeholder.jpg'];
+    }
+    
+    // 生成一个随机索引 (比如有3张图，就是 0, 1, 或 2)
+    const randomIndex = Math.floor(Math.random() * imageArray.length);
+    
+    // 把抽到的图片路径赋值给画布
+    bgImage.src = imageArray[randomIndex]; 
     
     bgImage.onload = function() {
         ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
@@ -25,7 +73,8 @@ function generateTicket() {
     };
 
     bgImage.onerror = function() {
-        ctx.fillStyle = '#2c2c2c'; 
+        // 如果你的图片路径写错了或者图片还没传上去，就用代码画个红黑框兜底
+        ctx.fillStyle = '#1a1111'; 
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         ctx.strokeStyle = '#8b0000'; 
@@ -49,7 +98,7 @@ function drawText(ctx, userName) {
     ctx.font = 'italic 40px serif';
     ctx.fillText(currentMovie, 50, 130);
 
-    ctx.fillStyle = '#a89f91';
+    ctx.fillStyle = '#8c7b7b';
     ctx.font = '20px monospace';
     ctx.fillText('ADMIT ONE:', 50, 200);
     
@@ -57,7 +106,7 @@ function drawText(ctx, userName) {
     ctx.font = 'bold 28px monospace';
     ctx.fillText(userName.toUpperCase(), 180, 200);
 
-    ctx.fillStyle = '#a89f91';
+    ctx.fillStyle = '#8c7b7b';
     ctx.font = '16px monospace';
     ctx.fillText('TIME: MIDNIGHT MATINEE', 50, 250);
     ctx.fillText('SEAT: ROW 13, SEAT 4', 300, 250);
