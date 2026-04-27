@@ -37,6 +37,7 @@ const movieGenres = {
 let currentMovie = "";
 let activeFilter = "all";
 let lastFocusedTrigger = null;
+let currentPreviewUrl = null;
 
 const modal = document.getElementById("ticketModal");
 const nameInput = document.getElementById("viewerName");
@@ -52,6 +53,32 @@ const searchInput = document.getElementById("movieSearch");
 const filterButtons = Array.from(document.querySelectorAll(".filter-chip"));
 const resultsCopy = document.getElementById("resultsCopy");
 
+function resetTicketPreview() {
+    if (currentPreviewUrl) {
+        URL.revokeObjectURL(currentPreviewUrl);
+        currentPreviewUrl = null;
+    }
+
+    ticketPreviewImage.removeAttribute("src");
+    downloadLink.href = "#";
+    ticketPreviewContainer.hidden = true;
+}
+
+function showTicketPreview(blob) {
+    resetTicketPreview();
+
+    currentPreviewUrl = URL.createObjectURL(blob);
+    ticketPreviewImage.onload = () => {
+        ticketPreviewContainer.hidden = false;
+    };
+    ticketPreviewImage.onerror = () => {
+        resetTicketPreview();
+        window.alert("Preview generation failed. Please try again.");
+    };
+    ticketPreviewImage.src = currentPreviewUrl;
+    downloadLink.href = currentPreviewUrl;
+}
+
 function openTicketModal(movieTitle, trigger = null) {
     currentMovie = movieTitle;
     lastFocusedTrigger = trigger;
@@ -61,9 +88,7 @@ function openTicketModal(movieTitle, trigger = null) {
     modal.classList.add("is-visible");
     modal.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
-    ticketPreviewContainer.hidden = true;
-    ticketPreviewImage.src = "";
-    downloadLink.href = "#";
+    resetTicketPreview();
     nameInput.value = "";
 
     window.requestAnimationFrame(() => {
@@ -286,16 +311,31 @@ function generateTicket() {
         ctx.fillText("VOID IF DAWN ARRIVES", 628, 195);
         ctx.fillText("HORRORDB 2026", 628, 230);
 
-        try {
-            const dataURL = canvas.toDataURL("image/jpeg", 0.92);
-            ticketPreviewImage.src = dataURL;
-            downloadLink.href = dataURL;
-            ticketPreviewContainer.hidden = false;
-        } catch (error) {
-            console.error("Ticket export failed:", error);
-            ticketPreviewContainer.hidden = true;
-            window.alert("Ticket generation is blocked in this local file view. Refresh from a local server or use the fallback ticket rendering.");
-        }
+        canvas.toBlob(
+            (blob) => {
+                if (blob) {
+                    showTicketPreview(blob);
+                    return;
+                }
+
+                try {
+                    const dataURL = canvas.toDataURL("image/jpeg", 0.92);
+                    fetch(dataURL)
+                        .then((response) => response.blob())
+                        .then(showTicketPreview)
+                        .catch((error) => {
+                            console.error("Ticket preview fallback failed:", error);
+                            resetTicketPreview();
+                        });
+                } catch (error) {
+                    console.error("Ticket export failed:", error);
+                    resetTicketPreview();
+                    window.alert("Ticket generation is blocked in this view. Please try again.");
+                }
+            },
+            "image/jpeg",
+            0.92
+        );
     };
 
     if (isFileProtocol || !imagePath) {
