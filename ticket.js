@@ -1,129 +1,316 @@
-// ==========================================
-// 1. 建立电影专属图库池 (Image Pool)
-// ==========================================
-// 请把你准备好的底图放到 images 文件夹里，并在这里填上正确的路径
 const movieBackgrounds = {
-    'Frankenstein': [
-        'images/frank-bg-1.jpg',
-        'images/frank-bg-2.jpg'
+    Frankenstein: [
+        "images/frank-bg-1.jpg",
+        "images/frank-bg-2.jpg",
+        "images/frank-bg-3.jpg",
+        "images/frank-bg-4.jpg"
     ],
-    'Psycho': [
-        'images/psycho-bg-1.jpg',
-        'images/psycho-bg-2.jpg',
-        'images/psycho-bg-3.jpg'
+    Psycho: [
+        "images/psycho-bg-1.jpg",
+        "images/psycho-bg-2.jpg",
+        "images/psycho-bg-3.jpg"
     ],
-    'Rosemary\'s Baby': [
-        'images/rosemary-bg-1.jpg',
-        'images/rosemary-bg-2.jpg'
+    "Rosemary's Baby": [
+        "images/rosemary-bg-1.jpg",
+        "images/rosemary-bg-2.jpg"
     ],
-    'The Exorcist': [
-        'images/exorcist-bg-1.jpg',
-        'images/exorcist-bg-2.jpg'
+    "The Exorcist": [
+        "images/exorcist-bg-1.jpg",
+        "images/exorcist-bg-2.jpg",
+        "images/exorcist-bg-3.jpg"
     ],
-    'The Shining': [
-        'images/shining-bg-1.jpg',
-        'images/shining-bg-2.jpg'
+    "The Shining": [
+        "images/shining-bg-1.jpg",
+        "images/shining-bg-2.jpg",
+        "images/shining-bg-3.jpg"
     ]
 };
 
-let currentMovie = ""; 
+const movieGenres = {
+    Frankenstein: "Monster",
+    Psycho: "Psychological",
+    "Rosemary's Baby": "Occult",
+    "The Exorcist": "Occult",
+    "The Shining": "Haunted"
+};
 
-function openTicketModal(movieTitle) {
+let currentMovie = "";
+let activeFilter = "all";
+let lastFocusedTrigger = null;
+
+const modal = document.getElementById("ticketModal");
+const nameInput = document.getElementById("viewerName");
+const generateButton = document.getElementById("generateTicketButton");
+const ticketHeading = document.getElementById("ticketHeading");
+const ticketDescription = document.getElementById("ticketDescription");
+const ticketPreviewContainer = document.getElementById("ticketPreviewContainer");
+const ticketPreviewImage = document.getElementById("ticketPreviewImage");
+const downloadLink = document.getElementById("downloadLink");
+const canvas = document.getElementById("ticketCanvas");
+const movieCards = Array.from(document.querySelectorAll(".movie-card"));
+const searchInput = document.getElementById("movieSearch");
+const filterButtons = Array.from(document.querySelectorAll(".filter-chip"));
+const resultsCopy = document.getElementById("resultsCopy");
+
+function openTicketModal(movieTitle, trigger = null) {
     currentMovie = movieTitle;
-    document.getElementById('ticketModal').style.display = 'block';
-    document.getElementById('ticketPreviewContainer').style.display = 'none';
-    
-    const nameInput = document.getElementById('viewerName');
-    nameInput.value = '';
-    // 让输入框瞬间获得焦点，增强“直接跳转”的体验
-    nameInput.focus(); 
+    lastFocusedTrigger = trigger;
+
+    ticketHeading.textContent = `${movieTitle} Ticket Stub`;
+    ticketDescription.textContent = `Generate a personalized admission for ${movieTitle} and download it as a festival souvenir.`;
+    modal.classList.add("is-visible");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+    ticketPreviewContainer.hidden = true;
+    ticketPreviewImage.src = "";
+    downloadLink.href = "#";
+    nameInput.value = "";
+
+    window.requestAnimationFrame(() => {
+        nameInput.focus();
+    });
 }
 
 function closeTicketModal() {
-    document.getElementById('ticketModal').style.display = 'none';
+    modal.classList.remove("is-visible");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("modal-open");
+
+    if (lastFocusedTrigger instanceof HTMLElement) {
+        lastFocusedTrigger.focus();
+    }
+}
+
+function attachOpeners() {
+    const triggers = document.querySelectorAll("[data-open-ticket]");
+
+    for (const trigger of triggers) {
+        trigger.addEventListener("click", (event) => {
+            const movieTitle = event.currentTarget.dataset.movie;
+            openTicketModal(movieTitle, event.currentTarget);
+        });
+    }
+
+    for (const card of movieCards) {
+        card.addEventListener("click", (event) => {
+            if (event.target.closest("[data-open-ticket]")) {
+                return;
+            }
+
+            openTicketModal(card.dataset.movie, card);
+        });
+
+        card.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                openTicketModal(card.dataset.movie, card);
+            }
+        });
+    }
+}
+
+function updateResults(visibleCards) {
+    const label = visibleCards === 1 ? "film" : "films";
+    resultsCopy.textContent = `Showing ${visibleCards} ${label}`;
+}
+
+function filterMovies() {
+    const query = searchInput.value.trim().toLowerCase();
+    let visibleCards = 0;
+
+    for (const card of movieCards) {
+        const matchesFilter =
+            activeFilter === "all" || card.dataset.genre === activeFilter;
+        const matchesQuery =
+            query.length === 0 || card.dataset.search.includes(query);
+        const shouldShow = matchesFilter && matchesQuery;
+
+        card.hidden = !shouldShow;
+
+        if (shouldShow) {
+            visibleCards += 1;
+        }
+    }
+
+    updateResults(visibleCards);
+}
+
+function attachFilters() {
+    searchInput.addEventListener("input", filterMovies);
+
+    for (const button of filterButtons) {
+        button.addEventListener("click", () => {
+            activeFilter = button.dataset.filter;
+
+            for (const chip of filterButtons) {
+                chip.classList.toggle("is-active", chip === button);
+            }
+
+            filterMovies();
+        });
+    }
+}
+
+function attachModalControls() {
+    generateButton.addEventListener("click", generateTicket);
+
+    document.querySelector(".close-btn").addEventListener("click", closeTicketModal);
+
+    modal.addEventListener("click", (event) => {
+        if (event.target === modal) {
+            closeTicketModal();
+        }
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && modal.classList.contains("is-visible")) {
+            closeTicketModal();
+        }
+    });
+
+    nameInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            generateTicket();
+        }
+    });
+}
+
+function attachRevealAnimation() {
+    if (!("IntersectionObserver" in window)) {
+        for (const card of document.querySelectorAll(".reveal-card")) {
+            card.classList.add("is-visible");
+        }
+        return;
+    }
+
+    const observer = new IntersectionObserver(
+        (entries) => {
+            for (const entry of entries) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("is-visible");
+                    observer.unobserve(entry.target);
+                }
+            }
+        },
+        { threshold: 0.2 }
+    );
+
+    for (const card of document.querySelectorAll(".reveal-card")) {
+        observer.observe(card);
+    }
 }
 
 function generateTicket() {
-    const nameInput = document.getElementById('viewerName').value.trim() || 'GUEST';
-    const canvas = document.getElementById('ticketCanvas');
-    const ctx = canvas.getContext('2d');
-    
-    let imageArray = movieBackgrounds[currentMovie];
-    if (!imageArray || imageArray.length === 0) {
-        imageArray = ['images/ticket-placeholder.jpg']; // 确保有一张兜底图
-    }
-    const randomIndex = Math.floor(Math.random() * imageArray.length);
-    
-    const bgImage = new Image();
-    
-    // 💡 必须先写 onload
-    bgImage.onload = function() {
-        const imgRatio = bgImage.width / bgImage.height;
-        const canvasRatio = canvas.width / canvas.height;
-        let drawWidth, drawHeight, offsetX, offsetY;
+    const guestName = nameInput.value.trim() || "GUEST";
+    const ctx = canvas.getContext("2d");
+    const imagePool = movieBackgrounds[currentMovie] || [];
+    const isFileProtocol = window.location.protocol === "file:";
+    const imagePath = imagePool.length
+        ? imagePool[Math.floor(Math.random() * imagePool.length)]
+        : null;
 
-        if (imgRatio > canvasRatio) {
-            drawHeight = canvas.height;
-            drawWidth = bgImage.width * (canvas.height / bgImage.height);
-            offsetX = (canvas.width - drawWidth) / 2;
-            offsetY = 0;
+    const drawTicket = (backgroundImage = null) => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (backgroundImage) {
+            const imgRatio = backgroundImage.width / backgroundImage.height;
+            const canvasRatio = canvas.width / canvas.height;
+            let drawWidth;
+            let drawHeight;
+            let offsetX;
+            let offsetY;
+
+            if (imgRatio > canvasRatio) {
+                drawHeight = canvas.height;
+                drawWidth = backgroundImage.width * (canvas.height / backgroundImage.height);
+                offsetX = (canvas.width - drawWidth) / 2;
+                offsetY = 0;
+            } else {
+                drawWidth = canvas.width;
+                drawHeight = backgroundImage.height * (canvas.width / backgroundImage.width);
+                offsetX = 0;
+                offsetY = (canvas.height - drawHeight) / 2;
+            }
+
+            ctx.drawImage(backgroundImage, offsetX, offsetY, drawWidth, drawHeight);
         } else {
-            drawWidth = canvas.width;
-            drawHeight = bgImage.height * (canvas.width / bgImage.width);
-            offsetX = 0;
-            offsetY = (canvas.height - drawHeight) / 2;
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, "#150d0d");
+            gradient.addColorStop(1, "#090909");
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(bgImage, offsetX, offsetY, drawWidth, drawHeight);
-        
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.fillStyle = "rgba(6, 6, 6, 0.48)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        drawText(ctx, nameInput);
+        ctx.strokeStyle = "rgba(228, 199, 126, 0.62)";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(18, 18, canvas.width - 36, canvas.height - 36);
+
+        ctx.strokeStyle = "rgba(228, 199, 126, 0.32)";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([10, 8]);
+        ctx.beginPath();
+        ctx.moveTo(610, 26);
+        ctx.lineTo(610, 274);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = "#f0e2c4";
+        ctx.font = "600 26px 'Georgia'";
+        ctx.fillText("SHADOWS & CELLULOID", 48, 66);
+
+        ctx.fillStyle = "#cfb67a";
+        ctx.font = "18px 'Courier New'";
+        ctx.fillText("MIDNIGHT MATINEE / ADMIT ONE", 50, 98);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "italic 42px 'Georgia'";
+        ctx.fillText(currentMovie, 48, 152);
+
+        ctx.fillStyle = "#cfb67a";
+        ctx.font = "18px 'Courier New'";
+        ctx.fillText(`GENRE: ${movieGenres[currentMovie] || "Cult"}`, 50, 192);
+        ctx.fillText("SCREENING: 23:45", 50, 222);
+        ctx.fillText("VENUE: MIDNIGHT HALL", 50, 248);
+
+        ctx.fillStyle = "#8f1717";
+        ctx.font = "bold 30px 'Courier New'";
+        ctx.fillText(guestName.toUpperCase(), 628, 120);
+
+        ctx.fillStyle = "#f0e2c4";
+        ctx.font = "18px 'Courier New'";
+        ctx.fillText("ROW 13 / SEAT 4", 628, 160);
+        ctx.fillText("VOID IF DAWN ARRIVES", 628, 195);
+        ctx.fillText("HORRORDB 2026", 628, 230);
+
+        try {
+            const dataURL = canvas.toDataURL("image/jpeg", 0.92);
+            ticketPreviewImage.src = dataURL;
+            downloadLink.href = dataURL;
+            ticketPreviewContainer.hidden = false;
+        } catch (error) {
+            console.error("Ticket export failed:", error);
+            ticketPreviewContainer.hidden = true;
+            window.alert("Ticket generation is blocked in this local file view. Refresh from a local server or use the fallback ticket rendering.");
+        }
     };
 
-    bgImage.onerror = function() {
-        console.error("图片加载失败，请检查路径:", bgImage.src);
-        // 图片加载失败时的纯色兜底
-        ctx.fillStyle = '#1a1111'; 
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        drawText(ctx, nameInput);
-    };
+    if (isFileProtocol || !imagePath) {
+        drawTicket();
+        return;
+    }
 
-    // 💡 最后再给 src 赋值，触发上面的 onload
-    bgImage.src = imageArray[randomIndex]; 
+    const backgroundImage = new Image();
+    backgroundImage.onload = () => drawTicket(backgroundImage);
+    backgroundImage.onerror = () => drawTicket();
+    backgroundImage.src = imagePath;
 }
 
-function drawText(ctx, userName) {
-    const canvas = document.getElementById('ticketCanvas');
-    
-    ctx.fillStyle = '#e0d8c3'; 
-    ctx.textAlign = 'left';
-
-    ctx.font = 'bold 24px serif';
-    ctx.fillText('SHADOWS & CELLULOID FESTIVAL', 50, 60);
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'italic 40px serif';
-    ctx.fillText(currentMovie, 50, 130);
-
-    ctx.fillStyle = '#8c7b7b';
-    ctx.font = '20px monospace';
-    ctx.fillText('ADMIT ONE:', 50, 200);
-    
-    ctx.fillStyle = '#8b0000'; 
-    ctx.font = 'bold 28px monospace';
-    ctx.fillText(userName.toUpperCase(), 180, 200);
-
-    ctx.fillStyle = '#8c7b7b';
-    ctx.font = '16px monospace';
-    ctx.fillText('TIME: MIDNIGHT MATINEE', 50, 250);
-    ctx.fillText('SEAT: ROW 13, SEAT 4', 300, 250);
-
-    const dataURL = canvas.toDataURL('image/jpeg', 0.9);
-    
-    document.getElementById('ticketPreviewImage').src = dataURL;
-    document.getElementById('downloadLink').href = dataURL;
-    document.getElementById('ticketPreviewContainer').style.display = 'block';
-}
+attachOpeners();
+attachFilters();
+attachModalControls();
+attachRevealAnimation();
+filterMovies();

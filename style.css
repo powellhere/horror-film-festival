@@ -1,252 +1,781 @@
-<style> 
-    /* 全局样式 */ 
-    :root {
-            --bg-color: #121212;
-            --surface-color: #1f1f1f;
-            --text-primary: #ffffff;
-            --text-secondary: #b3b3b3;
-            --imdb-yellow: #f5c518;
-            --hover-color: #2a2a2a;
+:root {
+    --bg: #070707;
+    --bg-elevated: #111111;
+    --panel: rgba(19, 17, 17, 0.82);
+    --panel-strong: rgba(26, 23, 23, 0.96);
+    --line: rgba(228, 199, 126, 0.24);
+    --line-strong: rgba(228, 199, 126, 0.54);
+    --text: #f6f0e4;
+    --muted: #b7a890;
+    --accent: #e4c77e;
+    --accent-deep: #8d1f1f;
+    --accent-bright: #f6e6aa;
+    --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+    --shadow-tight: 0 18px 38px rgba(0, 0, 0, 0.32);
+    --radius-xl: 28px;
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+    --content-width: 1240px;
+    --gutter: clamp(1.1rem, 2vw, 2rem);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--text);
+    font-family: "Cormorant Garamond", serif;
+    background:
+        radial-gradient(circle at top, rgba(132, 21, 21, 0.33), transparent 30%),
+        radial-gradient(circle at 85% 15%, rgba(228, 199, 126, 0.1), transparent 22%),
+        linear-gradient(180deg, #120b0c 0%, #070707 40%, #040404 100%);
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)),
+        repeating-linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.028) 0,
+            rgba(255, 255, 255, 0.028) 1px,
+            transparent 1px,
+            transparent 4px
+        );
+    opacity: 0.35;
+    mix-blend-mode: soft-light;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+button,
+input,
+a {
+    font: inherit;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button {
+    border: 0;
+}
+
+.page-shell {
+    position: relative;
+    width: min(100%, calc(var(--content-width) + 2 * var(--gutter)));
+    margin: 0 auto;
+    padding: 1.25rem var(--gutter) 3rem;
+}
+
+.site-header {
+    position: sticky;
+    top: 1rem;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem 1.1rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(7, 7, 7, 0.8);
+    backdrop-filter: blur(16px);
+    box-shadow: var(--shadow-tight);
+}
+
+.brand-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-family: "Bebas Neue", sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.brand-mark__db {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    aspect-ratio: 1;
+    border-radius: 0.72rem;
+    background: var(--accent);
+    color: #14100c;
+    font-size: 1.25rem;
+}
+
+.brand-mark__text {
+    font-size: 1.55rem;
+}
+
+.site-nav {
+    display: inline-flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.site-nav a,
+.nav-ticket-button,
+.ghost-button,
+.card-link,
+.filter-chip,
+.download-btn,
+.gen-btn,
+.primary-button,
+.secondary-button {
+    transition:
+        transform 180ms ease,
+        border-color 180ms ease,
+        background-color 180ms ease,
+        color 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.site-nav a,
+.nav-ticket-button {
+    padding: 0.45rem 0.8rem;
+    border-radius: 999px;
+    color: var(--muted);
+    font-size: 1.02rem;
+    background: transparent;
+    cursor: pointer;
+}
+
+.site-nav a:hover,
+.site-nav a:focus-visible,
+.nav-ticket-button:hover,
+.nav-ticket-button:focus-visible {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.05);
+    outline: none;
+}
+
+.ghost-button,
+.secondary-button,
+.filter-chip {
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--text);
+    cursor: pointer;
+}
+
+.ghost-button:hover,
+.secondary-button:hover,
+.filter-chip:hover,
+.ghost-button:focus-visible,
+.secondary-button:focus-visible,
+.filter-chip:focus-visible,
+.card-link:hover,
+.card-link:focus-visible {
+    transform: translateY(-1px);
+    border-color: var(--line-strong);
+    outline: none;
+}
+
+.hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(1.5rem, 3vw, 3rem);
+    align-items: stretch;
+    margin-bottom: 2.8rem;
+}
+
+.hero-copy,
+.hero-panel,
+.cta-panel,
+.control-bar,
+.movie-card,
+.modal-content {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    box-shadow: var(--shadow);
+}
+
+.hero-copy,
+.hero-panel,
+.cta-panel {
+    border-radius: var(--radius-xl);
+}
+
+.hero-copy {
+    padding: clamp(1.6rem, 4vw, 3rem);
+    min-height: 30rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    background:
+        linear-gradient(180deg, rgba(7, 7, 7, 0.16), rgba(7, 7, 7, 0.88)),
+        radial-gradient(circle at top left, rgba(228, 199, 126, 0.16), transparent 34%),
+        url("images/frank-bg-4.jpg") center/cover;
+}
+
+.hero-copy::after,
+.hero-panel::after,
+.cta-panel::after,
+.movie-card::after,
+.modal-content::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: inherit;
+}
+
+.eyebrow,
+.movie-kicker,
+.ticket-modal__eyebrow,
+.video-frame__label {
+    margin: 0;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+.hero h1,
+.program-intro h2,
+.cta-panel h2,
+.modal-content h2 {
+    margin: 0;
+    font-weight: 600;
+    line-height: 0.94;
+}
+
+.hero h1 {
+    max-width: 8ch;
+    font-size: clamp(4rem, 11vw, 8rem);
+    text-transform: uppercase;
+}
+
+.hero-lede,
+.program-intro__text,
+.cta-panel p,
+#ticketDescription {
+    max-width: 34rem;
+    color: var(--muted);
+    font-size: clamp(1.1rem, 2vw, 1.3rem);
+}
+
+.hero-actions {
+    display: flex;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    margin: 2rem 0;
+}
+
+.primary-button,
+.secondary-button,
+.download-btn,
+.gen-btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 3.25rem;
+    padding: 0.85rem 1.35rem;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.primary-button,
+.gen-btn,
+.download-btn {
+    background: linear-gradient(135deg, #a51e1e 0%, #6f1313 100%);
+    color: #fff5ed;
+    box-shadow: 0 14px 34px rgba(120, 22, 22, 0.28);
+}
+
+.primary-button:hover,
+.gen-btn:hover,
+.download-btn:hover,
+.primary-button:focus-visible,
+.gen-btn:focus-visible,
+.download-btn:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 36px rgba(120, 22, 22, 0.34);
+    outline: none;
+}
+
+.hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;
+    margin: 0;
+}
+
+.hero-stats div {
+    padding: 0.95rem 1rem;
+    border-radius: var(--radius-md);
+    background: rgba(0, 0, 0, 0.36);
+    border: 1px solid rgba(228, 199, 126, 0.16);
+}
+
+.hero-stats dt {
+    margin-bottom: 0.25rem;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.hero-stats dd {
+    margin: 0;
+    font-family: "Bebas Neue", sans-serif;
+    font-size: 1.9rem;
+    letter-spacing: 0.06em;
+}
+
+.hero-panel {
+    display: grid;
+    gap: 1rem;
+    padding: 1.2rem;
+    background:
+        radial-gradient(circle at top right, rgba(228, 199, 126, 0.08), transparent 30%),
+        linear-gradient(180deg, rgba(18, 13, 13, 0.96), rgba(10, 10, 10, 0.96));
+}
+
+.hero-panel__note {
+    padding: 1.15rem 1.2rem;
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.hero-panel__note span {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-family: "IBM Plex Mono", monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+.hero-panel__note p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 1.06rem;
+}
+
+.video-frame {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.video-frame__embed {
+    position: relative;
+    padding-top: 56.25%;
+    border-radius: calc(var(--radius-lg) - 4px);
+    overflow: hidden;
+    background: #000;
+}
+
+.video-frame__embed iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.program-intro,
+.control-bar {
+    display: grid;
+    gap: 1rem;
+}
+
+.program-intro {
+    grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+    align-items: end;
+    margin-bottom: 1.25rem;
+}
+
+.program-intro h2,
+.cta-panel h2 {
+    font-size: clamp(2.5rem, 5vw, 4.3rem);
+}
+
+.control-bar {
+    grid-template-columns: minmax(240px, 1.3fr) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 1.6rem;
+    border-radius: var(--radius-lg);
+}
+
+.search-field {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.search-field__label,
+.results-copy,
+.input-label {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.84rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.search-field input,
+#viewerName {
+    width: 100%;
+    min-height: 3.2rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(228, 199, 126, 0.2);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    outline: none;
+}
+
+.search-field input:focus,
+#viewerName:focus {
+    border-color: var(--line-strong);
+    box-shadow: 0 0 0 4px rgba(228, 199, 126, 0.08);
+}
+
+.filter-cluster {
+    display: flex;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+}
+
+.filter-chip.is-active {
+    background: rgba(228, 199, 126, 0.16);
+    border-color: var(--line-strong);
+}
+
+.results-copy {
+    justify-self: end;
+    margin: 0;
+}
+
+.movie-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+}
+
+.movie-card {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.1fr);
+    min-height: 23rem;
+    border-radius: var(--radius-xl);
+    cursor: pointer;
+    transform: translateY(0);
+}
+
+.movie-card:hover,
+.movie-card:focus-visible {
+    transform: translateY(-4px);
+    border-color: var(--line-strong);
+    outline: none;
+}
+
+.movie-card[hidden] {
+    display: none;
+}
+
+.rank-badge {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.62);
+    border: 1px solid rgba(228, 199, 126, 0.28);
+    font-family: "IBM Plex Mono", monospace;
+    color: var(--accent);
+}
+
+.movie-poster {
+    min-height: 100%;
+    display: grid;
+    place-items: center;
+    background: #050505;
+}
+
+.movie-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.movie-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 0.85rem;
+    padding: 1.35rem 1.35rem 1.4rem;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent),
+        linear-gradient(180deg, rgba(10, 10, 10, 0.76), rgba(14, 12, 12, 0.96));
+}
+
+.movie-title {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3rem);
+    text-transform: uppercase;
+    line-height: 0.94;
+}
+
+.movie-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    color: var(--muted);
+    font-size: 1rem;
+}
+
+.movie-meta span {
+    padding-right: 0.7rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.movie-meta span:last-child {
+    padding-right: 0;
+    border-right: 0;
+}
+
+.movie-synopsis {
+    margin: 0;
+    color: #ddd0c1;
+    font-size: 1.08rem;
+    line-height: 1.45;
+}
+
+.card-link {
+    align-self: flex-start;
+    margin-top: auto;
+    padding: 0.4rem 0;
+    background: transparent;
+    color: var(--accent-bright);
+    cursor: pointer;
+}
+
+.cta-panel {
+    margin-top: 2rem;
+    padding: clamp(1.5rem, 4vw, 2.6rem);
+    border-radius: var(--radius-xl);
+    background:
+        linear-gradient(110deg, rgba(119, 18, 18, 0.55), rgba(11, 11, 11, 0.9)),
+        url("images/exorcist-bg-3.jpg") center/cover;
+}
+
+.cta-panel p {
+    margin-bottom: 1.4rem;
+}
+
+.site-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.8rem;
+    padding: 1.4rem 0 0.5rem;
+    color: var(--muted);
+    font-size: 1rem;
+}
+
+.site-footer p {
+    margin: 0;
+}
+
+.ticket-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    padding: 1.2rem;
+    background: rgba(5, 5, 5, 0.84);
+    backdrop-filter: blur(14px);
+}
+
+.ticket-modal.is-visible {
+    display: grid;
+    place-items: center;
+}
+
+.modal-content {
+    width: min(100%, 36rem);
+    padding: 1.6rem;
+    border-radius: var(--radius-xl);
+    background:
+        radial-gradient(circle at top right, rgba(228, 199, 126, 0.12), transparent 24%),
+        linear-gradient(180deg, rgba(23, 19, 19, 0.98), rgba(14, 12, 12, 0.98));
+}
+
+.close-btn {
+    position: absolute;
+    top: 0.8rem;
+    right: 0.8rem;
+    display: grid;
+    place-items: center;
+    width: 2.7rem;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    cursor: pointer;
+}
+
+.close-btn:hover,
+.close-btn:focus-visible {
+    background: rgba(255, 255, 255, 0.1);
+    outline: none;
+}
+
+.input-label {
+    display: block;
+    margin: 1rem 0 0.6rem;
+}
+
+.ticket-preview {
+    display: grid;
+    gap: 0.85rem;
+    margin-top: 1.2rem;
+}
+
+.ticket-preview img {
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-tight);
+}
+
+.gen-btn {
+    margin-top: 1rem;
+}
+
+.download-btn {
+    width: 100%;
+}
+
+.reveal-card {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+        opacity 500ms ease,
+        transform 500ms ease,
+        border-color 180ms ease;
+}
+
+.reveal-card.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (max-width: 1024px) {
+    .site-header,
+    .hero,
+    .program-intro,
+    .control-bar {
+        grid-template-columns: 1fr;
     }
 
-    body {
-        margin: 0;
-        padding: 0;
-        font-family: 'Helvetica Neue', Arial, sans-serif;
-        background-color: var(--bg-color);
-        color: var(--text-primary);
-        line-height: 1.6;
+    .site-header {
+        border-radius: 1.4rem;
     }
 
-    /* 顶部导航栏 */
-    header {
-        background-color: #000000;
-        padding: 10px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    .site-nav,
+    .results-copy {
+        justify-self: start;
     }
 
-    .logo {
-        background-color: var(--imdb-yellow);
-        color: #000;
-        font-weight: 900;
-        font-size: 1.2rem;
-        padding: 5px 10px;
-        border-radius: 4px;
-        text-decoration: none;
-        letter-spacing: -0.5px;
-    }
-
-    .search-bar {
-        flex-grow: 1;
-        margin: 0 30px;
-        display: flex;
-    }
-
-    .search-bar input {
-        width: 100%;
-        padding: 8px 15px;
-        border: none;
-        border-radius: 4px;
-        background-color: #fff;
-        font-size: 1rem;
-    }
-
-    /* 主体内容区 */
-    main {
-        max-width: 1100px; /* 稍微加宽一点以适应网格 */
-        margin: 0 auto;
-        padding: 20px;
-    }
-
-    /* 电影节简介版块 */
-    .festival-intro {
-        background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), url('https://images.unsplash.com/photo-1505635552518-3448ff116af3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80') center/cover;
-        padding: 40px;
-        border-radius: 8px;
-        margin-bottom: 40px;
-        border: 1px solid #333;
-    }
-
-    .festival-intro h1 {
-        color: var(--imdb-yellow);
-        font-size: 2.5rem;
-        margin-top: 0;
-        border-bottom: 2px solid #333;
-        padding-bottom: 10px;
-    }
-
-    .festival-intro p {
-        font-size: 1.1rem;
-        color: #e0e0e0;
-    }
-
-    .section-title {
-        color: var(--imdb-yellow);
-        font-size: 1.8rem;
-        margin-bottom: 20px;
-        display: flex;
-        align-items: center;
-    }
-    
-    .section-title::before {
-        content: '';
-        display: inline-block;
-        width: 4px;
-        height: 24px;
-        background-color: var(--imdb-yellow);
-        margin-right: 10px;
-        border-radius: 2px;
-    }
-
-    /* ========== 修改核心：电影卡片网格布局 ========== */
-    .movie-grid {
-        display: grid;
-        /* 自动适应屏幕宽度，每列最小 400px，最大填满 */
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-        gap: 30px; 
+    .hero-copy {
+        min-height: 32rem;
     }
 
     .movie-card {
-        display: flex;
-        flex-direction: column; /* 【关键修改】改为上下垂直排列 */
-        background-color: var(--surface-color);
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        transition: transform 0.2s, background-color 0.2s;
-        height: 100%; /* 让同一行的卡片等高 */
+        grid-column: span 12;
     }
 
-    .movie-card:hover {
-        transform: translateY(-5px); /* 悬停时微微上浮 */
-        background-color: var(--hover-color);
+    .site-footer {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 720px) {
+    .page-shell {
+        padding-top: 0.8rem;
+    }
+
+    .hero h1 {
+        max-width: none;
+    }
+
+    .hero-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .movie-card {
+        grid-template-columns: 1fr;
     }
 
     .movie-poster {
-        width: 100%;
-        height: 400px; /* 固定图片高度，您可以根据喜好调整 */
-        background-color: #1a1a1a; /* 图片加载前的底色 */
-    }
-
-    .movie-poster img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover; /* 【关键修改】确保图片填满区域且不变形 */
-        object-position: center 20%; /* 让图片焦点偏上 */
-        display: block;
-    }
-
-    .movie-info {
-        padding: 25px;
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1; /* 让信息区域填满剩余高度 */
+        max-height: 18rem;
     }
 
     .movie-title {
-        font-size: 1.5rem;
-        margin: 0 0 10px 0;
+        font-size: 2.4rem;
     }
 
-    .movie-title a {
-        color: var(--text-primary);
-        text-decoration: none;
+    .control-bar {
+        padding: 0.9rem;
     }
-
-    .movie-title a:hover {
-        text-decoration: underline;
-    }
-
-    .movie-meta {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        margin-bottom: 15px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid #333; /* 增加一条分割线让视觉更清晰 */
-    }
-
-    .movie-meta span {
-        margin-right: 15px;
-    }
-
-    .movie-meta strong {
-        color: var(--text-primary);
-    }
-
-    .movie-synopsis {
-        font-size: 1rem;
-        color: #ccc;
-        margin: 0;
-        line-height: 1.7;
-    }
-
-    /* 页脚 */
-    footer {
-        text-align: center;
-        padding: 20px;
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-        background-color: #000;
-        margin-top: 60px;
-    }
-
-    /* 响应式设计：手机端适配 */
-    @media (max-width: 768px) {
-        .movie-grid {
-            grid-template-columns: 1fr; /* 手机端强制单列显示 */
-        }
-        .movie-poster {
-            height: 300px; /* 手机端稍微减小图片高度 */
-        }
-        .search-bar {
-            display: none;
-        }
-    }
-</style>
-/* 模态框背景遮罩 */
-.ticket-modal {
-    display: none; 
-    position: fixed; 
-    z-index: 999; 
-    left: 0; top: 0; width: 100%; height: 100%; 
-    background-color: rgba(0, 0, 0, 0.85); 
-    backdrop-filter: blur(5px);
 }
 
-/* 模态框主体 */
-.modal-content {
-    background-color: #1a1a1a;
-    color: #e0d8c3; 
-    margin: 10% auto; 
-    padding: 30px; 
-    border: 1px solid #444;
-    width: 90%; 
-    max-width: 500px;
-    text-align: center;
-    border-radius: 4px;
-    font-family: 'Playfair Display', serif; 
-}
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
 
-/* 关闭按钮 */
-.close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-.close-btn:hover { color: #fff; }
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+    }
 
-/* 输入框和按钮样式 */
-#viewerName {
-    width: 80%; padding: 10px; margin: 15px 0;
-    background: #222; border: 1px solid #555; color: #fff;
-    font-family: monospace; font-size: 16px;
+    .reveal-card,
+    .reveal-card.is-visible {
+        opacity: 1;
+        transform: none;
+    }
 }
-.gen-btn, .download-btn {
-    background-color: #8b0000; 
-    color: white; border: none; padding: 12px 24px;
-    cursor: pointer; font-size: 16px; transition: 0.3s;
-}
-.gen-btn:hover, .download-btn:hover { background-color: #a50000; }
-.download-btn { margin-top: 15px; width: 100%; }
