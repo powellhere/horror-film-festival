@@ -38,6 +38,7 @@ let currentMovie = "";
 let activeFilter = "all";
 let lastFocusedTrigger = null;
 let currentPreviewUrl = null;
+let currentBackgroundIndex = 0;
 
 const modal = document.getElementById("ticketModal");
 const nameInput = document.getElementById("viewerName");
@@ -52,6 +53,67 @@ const movieCards = Array.from(document.querySelectorAll(".movie-card"));
 const searchInput = document.getElementById("movieSearch");
 const filterButtons = Array.from(document.querySelectorAll(".filter-chip"));
 const resultsCopy = document.getElementById("resultsCopy");
+const galleryPreviewImage = document.getElementById("galleryPreviewImage");
+const galleryThumbs = document.getElementById("galleryThumbs");
+const galleryPrevButton = document.getElementById("galleryPrevButton");
+const galleryNextButton = document.getElementById("galleryNextButton");
+
+function getCurrentImagePool() {
+    return movieBackgrounds[currentMovie] || [];
+}
+
+function setActiveBackground(index) {
+    const imagePool = getCurrentImagePool();
+    if (!imagePool.length) {
+        galleryPreviewImage.removeAttribute("src");
+        return;
+    }
+
+    currentBackgroundIndex = (index + imagePool.length) % imagePool.length;
+    galleryPreviewImage.src = imagePool[currentBackgroundIndex];
+
+    for (const thumb of galleryThumbs.querySelectorAll(".gallery-thumb")) {
+        const isActive = Number(thumb.dataset.index) === currentBackgroundIndex;
+        thumb.classList.toggle("is-active", isActive);
+        thumb.setAttribute("aria-pressed", String(isActive));
+    }
+}
+
+function renderGallery() {
+    const imagePool = getCurrentImagePool();
+    galleryThumbs.innerHTML = "";
+
+    if (!imagePool.length) {
+        galleryPreviewImage.removeAttribute("src");
+        galleryPrevButton.hidden = true;
+        galleryNextButton.hidden = true;
+        return;
+    }
+
+    galleryPrevButton.hidden = imagePool.length <= 1;
+    galleryNextButton.hidden = imagePool.length <= 1;
+
+    imagePool.forEach((imagePath, index) => {
+        const thumb = document.createElement("button");
+        thumb.type = "button";
+        thumb.className = "gallery-thumb";
+        thumb.dataset.index = String(index);
+        thumb.setAttribute("aria-label", `Select background ${index + 1}`);
+
+        const thumbImage = document.createElement("img");
+        thumbImage.src = imagePath;
+        thumbImage.alt = "";
+        thumb.appendChild(thumbImage);
+
+        thumb.addEventListener("click", () => {
+            setActiveBackground(index);
+        });
+
+        galleryThumbs.appendChild(thumb);
+    });
+
+    setActiveBackground(currentBackgroundIndex);
+}
 
 function resetTicketPreview() {
     if (currentPreviewUrl) {
@@ -81,6 +143,7 @@ function showTicketPreview(blob) {
 
 function openTicketModal(movieTitle, trigger = null) {
     currentMovie = movieTitle;
+    currentBackgroundIndex = 0;
     lastFocusedTrigger = trigger;
 
     ticketHeading.textContent = `${movieTitle} Ticket Stub`;
@@ -89,6 +152,7 @@ function openTicketModal(movieTitle, trigger = null) {
     modal.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");
     resetTicketPreview();
+    renderGallery();
     nameInput.value = "";
 
     window.requestAnimationFrame(() => {
@@ -178,6 +242,12 @@ function attachFilters() {
 
 function attachModalControls() {
     generateButton.addEventListener("click", generateTicket);
+    galleryPrevButton.addEventListener("click", () => {
+        setActiveBackground(currentBackgroundIndex - 1);
+    });
+    galleryNextButton.addEventListener("click", () => {
+        setActiveBackground(currentBackgroundIndex + 1);
+    });
 
     document.querySelector(".close-btn").addEventListener("click", closeTicketModal);
 
@@ -232,7 +302,7 @@ function generateTicket() {
     const imagePool = movieBackgrounds[currentMovie] || [];
     const isFileProtocol = window.location.protocol === "file:";
     const imagePath = imagePool.length
-        ? imagePool[Math.floor(Math.random() * imagePool.length)]
+        ? imagePool[currentBackgroundIndex % imagePool.length]
         : null;
 
     const drawTicket = (backgroundImage = null) => {

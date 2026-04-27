@@ -14,7 +14,7 @@
         href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
         rel="stylesheet"
     >
-    <link rel="stylesheet" href="style.css?v=20260428-2">
+    <link rel="stylesheet" href="style.css?v=20260428-3">
 </head>
 <body>
     <div class="page-shell">
@@ -308,6 +308,21 @@
                 Enter your name to generate a custom ticket stub for tonight's screening.
             </p>
 
+            <section class="ticket-gallery" aria-label="Ticket background gallery">
+                <div class="gallery-stage">
+                    <button type="button" class="gallery-nav" id="galleryPrevButton" aria-label="Previous background">
+                        &larr;
+                    </button>
+                    <div class="gallery-stage__frame">
+                        <img id="galleryPreviewImage" src="" alt="Ticket background preview">
+                    </div>
+                    <button type="button" class="gallery-nav" id="galleryNextButton" aria-label="Next background">
+                        &rarr;
+                    </button>
+                </div>
+                <div id="galleryThumbs" class="gallery-thumbs" aria-label="Background thumbnails"></div>
+            </section>
+
             <label class="input-label" for="viewerName">Guest Name</label>
             <input type="text" id="viewerName" placeholder="Your name" maxlength="20">
             <button type="button" class="gen-btn" id="generateTicketButton">Generate Ticket</button>
@@ -315,7 +330,8 @@
             <canvas id="ticketCanvas" width="800" height="300" hidden></canvas>
 
             <div id="ticketPreviewContainer" class="ticket-preview" hidden>
-                <img id="ticketPreviewImage" src="" alt="Generated ticket preview">
+                <div class="ticket-preview__label">Generated ticket preview</div>
+                <img id="ticketPreviewImage" src="" alt="">
                 <a id="downloadLink" class="download-btn" href="#" download="Shadows-Celluloid-Ticket.jpg">
                     Download ticket (.jpg)
                 </a>
@@ -323,6 +339,6 @@
         </div>
     </div>
 
-    <script src="ticket.js?v=20260428-2"></script>
+    <script src="ticket.js?v=20260428-3"></script>
 </body>
 </html>
