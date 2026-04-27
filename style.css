@@ -631,20 +631,25 @@ button {
     padding: 1.2rem;
     background: rgba(5, 5, 5, 0.84);
     backdrop-filter: blur(14px);
+    overflow-y: auto;
 }
 
 .ticket-modal.is-visible {
     display: grid;
-    place-items: center;
+    place-items: start center;
 }
 
 .modal-content {
     width: min(100%, 36rem);
+    max-height: calc(100vh - 2.4rem);
     padding: 1.6rem;
     border-radius: var(--radius-xl);
     background:
         radial-gradient(circle at top right, rgba(228, 199, 126, 0.12), transparent 24%),
         linear-gradient(180deg, rgba(23, 19, 19, 0.98), rgba(14, 12, 12, 0.98));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin: auto 0;
 }
 
 .close-btn {
@@ -762,6 +767,9 @@ button {
 
 .ticket-preview img {
     width: 100%;
+    max-height: min(42vh, 20rem);
+    object-fit: contain;
+    background: rgba(255, 255, 255, 0.03);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-tight);
 }
@@ -821,6 +829,15 @@ button {
 @media (max-width: 720px) {
     .page-shell {
         padding-top: 0.8rem;
+    }
+
+    .ticket-modal {
+        padding: 0.8rem;
+    }
+
+    .modal-content {
+        max-height: calc(100vh - 1.6rem);
+        padding: 1.15rem;
     }
 
     .hero h1 {
